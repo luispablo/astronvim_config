@@ -12,7 +12,7 @@ vim.opt.rtp:prepend(lazypath)
 if not pcall(require, "lazy") then
   -- stylua: ignore
   vim.api.nvim_echo(
-  { { ("Unable to load lazy from: %s\n"):format(lazypath), "ErrorMsg" }, { "Press any key to exit...", "MoreMsg" } },
+    { { ("Unable to load lazy from: %s\n"):format(lazypath), "ErrorMsg" }, { "Press any key to exit...", "MoreMsg" } },
     true, {})
   vim.fn.getchar()
   vim.cmd.quit()
@@ -22,9 +22,29 @@ require "lazy_setup"
 require "polish"
 
 -- Custom command & mapping to live grep word under cursor
+
+function SearchWithUnnamedRegisterOrWord()
+  local search_text = ""
+
+  -- Get the content of the unnamed register
+  local unnamed_register = vim.fn.getreg '"'
+
+  if unnamed_register ~= "" then
+    -- If the unnamed register is not empty, use its content
+    search_text = unnamed_register
+  else
+    -- Use the word under the cursor if the unnamed register is empty
+    search_text = vim.fn.expand "<cword>"
+  end
+
+  -- Call Telescope live_grep with the search text
+  require("telescope.builtin").live_grep { default_text = search_text }
+end
+
+-- Create a mapping for normal and visual mode
 vim.api.nvim_set_keymap(
   "n",
   "<leader>gw",
-  [[<cmd>lua require('telescope.builtin').live_grep({ default_text = vim.fn.expand("<cword>") })<CR>]],
+  [[<cmd>lua SearchWithUnnamedRegisterOrWord()<CR>]],
   { noremap = true, silent = true }
 )
